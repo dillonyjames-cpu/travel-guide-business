@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  crawler-files:
+    name: Validate robots.txt and sitemap.xml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate crawler files
+        run: |
+          set -euo pipefail
+          test -f public/robots.txt
+          test -f public/sitemap.xml
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('public/sitemap.xml')"
+          grep -q "^Sitemap: https://wayasia.travel/sitemap.xml$" public/robots.txt
+          urls=$(grep -c "<loc>https://wayasia.travel/" public/sitemap.xml)
+          test "$urls" -ge 1
+          echo "sitemap URLs: $urls"
