@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Images and media are indexed alongside the pages that present them.
+Allow: /media/
+
+Sitemap: https://wayasia.travel/sitemap.xml
