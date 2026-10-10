@@ -3,6 +3,7 @@ import { useReducedMotion } from "framer-motion";
 import type { Media } from "../lib/media";
 import { imageSrcSet } from "../lib/media";
 import { useAvailableVideos } from "../lib/useAvailableVideos";
+import { MediaPlaceholder } from "./MediaPlaceholder";
 
 /** How long each stop on the reel stays on screen. */
 const SLIDE_MS = 7000;
@@ -46,6 +47,7 @@ export function HeroReel({ slides, className = "" }: { slides: Media[]; classNam
   const rootRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [inView, setInView] = useState(true);
+  const [missing, setMissing] = useState<Set<string>>(() => new Set());
   const available = useAvailableVideos(slides.map((slide) => slide.video));
 
   // Only rotate while the hero is actually on screen.
@@ -80,18 +82,22 @@ export function HeroReel({ slides, className = "" }: { slides: Media[]; classNam
               active ? "opacity-100" : "opacity-0"
             }`}
           >
-            <img
-              src={slide.image}
-              srcSet={imageSrcSet(slide.image)}
-              sizes="100vw"
-              alt=""
-              loading={i === 0 ? "eager" : "lazy"}
-              fetchPriority={i === 0 ? "high" : "auto"}
-              decoding="async"
-              className={`absolute inset-0 h-full w-full object-cover ${
-                active && !video && !reduceMotion ? "ken-burns" : ""
-              }`}
-            />
+            <MediaPlaceholder image={slide.image} showLabel={false} />
+            {!missing.has(slide.image) && (
+              <img
+                src={slide.image}
+                srcSet={imageSrcSet(slide.image)}
+                sizes="100vw"
+                alt=""
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                decoding="async"
+                onError={() => setMissing((prev) => new Set(prev).add(slide.image))}
+                className={`absolute inset-0 h-full w-full object-cover ${
+                  active && !video && !reduceMotion ? "ken-burns" : ""
+                }`}
+              />
+            )}
             {active && video && <ReelVideo src={video} poster={slide.poster ?? slide.image} />}
           </div>
         );
